@@ -3,7 +3,6 @@ import Car from '../models/Car.js';
 
 const router = express.Router();
 
-// GET all cars
 router.get('/', async (req, res) => {
   try {
     const cars = await Car.find();
@@ -13,7 +12,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST a new car
 router.post('/', async (req, res) => {
   const car = new Car({
     name: req.body.name,
@@ -31,7 +29,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET a specific car by ID
 router.get('/:carId', async (req, res) => {
   try {
     const car = await Car.findById(req.params.carId);
@@ -41,7 +38,6 @@ router.get('/:carId', async (req, res) => {
   }
 });
 
-// DELETE a specific car by ID
 router.delete('/:carId', async (req, res) => {
   try {
     const removedCar = await Car.remove({ _id: req.params.carId });
@@ -51,7 +47,6 @@ router.delete('/:carId', async (req, res) => {
   }
 });
 
-// UPDATE a specific car by ID
 router.patch('/:carId', async (req, res) => {
   try {
     const updatedCar = await Car.updateOne(

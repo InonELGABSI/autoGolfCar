@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient
-from salesman_algorithm import solve  # Import your genetic algorithm function
+from salesman_algorithm import solve  
 
 app = Flask(__name__)
 CORS(app)
@@ -22,10 +22,9 @@ def optimize_route():
         if not coordinates:
             return jsonify({'error': 'No coordinates provided'}), 400
 
-        # Assuming coordinates are in the format [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}, ...]
         points = [Point(coord['x'], coord['y']) for coord in coordinates]
 
-        # Solve the traveling salesman problem using the genetic algorithm
+
         optimized_route = solve(points)
 
         return jsonify({'optimized_route': [vars(point) for point in optimized_route]}), 200

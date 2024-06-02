@@ -84,21 +84,17 @@ def solve(points):
         return best_solution
 
 
-    # Run the genetic algorithm and return the best solution
     best_solution = genetic_algorithm(points.copy(), population_size, generations, mutation_rate)
-    return best_solution[:-1]  # Return only the city order (remove the last duplicate point)
-
+    return best_solution[:-1]  
 
 def roulette_wheel_selection_elitism(population, fitness_scores, elite_size=2):
    
     total_fitness = sum(fitness_scores)
     probabilities = [score / total_fitness for score in fitness_scores]
 
-    # Select elite individuals
     elite_indices = sorted(range(len(population)), key=lambda i: fitness_scores[i])[:elite_size]
     elite_parents = [population[i] for i in elite_indices]
 
-    # Select remaining parents using roulette wheel selection
     selected_parents = elite_parents.copy()
     for _ in range(len(population) // 2 - elite_size):
         selection_point = random.uniform(0, total_fitness)

@@ -2,7 +2,6 @@ import React from 'react';
 import { GoogleMap, LoadScript, Marker as AdvancedMarkerElement } from '@react-google-maps/api';
 import dotenv from 'dotenv';
 
-// Load environment variables from .env file
 dotenv.config();
 
 const containerStyle = {
