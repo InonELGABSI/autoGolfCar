@@ -1,68 +1,66 @@
 #include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <cpprest/http_listener.h>
-#include <cpprest/json.h>
+#include <curl/curl.h>
+#include <chrono>
+#include <thread>
 
-using namespace web;
-using namespace web::http;
-using namespace web::http::experimental::listener;
+// Replace with your backend URL and data format (JSON example)
+const std::string backend_url = "http://localhost:3000/";
+const std::string data_format = "{\"timestamp\": %lld, \"locations\": [%s]}";
 
-class Location {
-public:
-    Location(double latitude, double longitude) : latitude(latitude), longitude(longitude) {}
+// Function to simulate fetching car locations (replace with your actual logic)
+std::vector<double> get_car_locations() {
+  // Simulate data generation
+  std::vector<double> locations = {10.0, 20.0, 30.0};
+  return locations;
+}
 
-    double getLatitude() const { return latitude; }
-    double getLongitude() const { return longitude; }
+// Function to send data to the backend using libcurl
+void send_data_to_backend(const std::vector<double>& locations) {
+  CURL *curl;
+  CURLcode res;
+  long http_code = 0;
 
-private:
-    double latitude;
-    double longitude;
-};
+  curl = curl_easy_init();
+  if (curl) {
+    // Convert locations to JSON string
+    std::string json_data;
+    long long timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), data_format.c_str(), timestamp, "[10.0, 20.0, 30.0]"); // Replace with actual location conversion
+    json_data = buffer;
 
-void handle_post(http_request request) {
-    request.extract_json().then([=](json::value requestData) {
-        
-        std::unordered_map<std::string, Location> carLocations;
-        carLocations["Car1"] = Location(51.501, -0.05);
-        carLocations["Car2"] = Location(51.502, -0.06);
-        carLocations["Car3"] = Location(51.503, -0.07);
+    curl_easy_setopt(curl, CURLOPT_URL, backend_url.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, json_data.length());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L); // Set to 1 for detailed output
 
-        json::value responseData;
-        for (auto& car : requestData.as_array()) {
-            auto carId = car.as_string();
-            if (carLocations.find(carId) != carLocations.end()) {
-                auto location = carLocations[carId];
-                json::value locationData;
-                locationData[U("latitude")] = json::value::number(location.getLatitude());
-                locationData[U("longitude")] = json::value::number(location.getLongitude());
-                responseData[carId] = locationData;
-            }
-        }
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+      fprintf(stderr, "curl_easy_perform failed: %s\n", curl_easy_strerror(res));
+    } else {
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+      if (http_code != 200) {
+        std::cerr << "Error: Backend returned status code " << http_code << std::endl;
+      } else {
+        std::cout << "Data sent successfully!" << std::endl;
+      }
+    }
 
-        request.reply(status_codes::OK, responseData);
-    }).wait();
+    curl_easy_cleanup(curl);
+  }
 }
 
 int main() {
-    uri_builder uri(U("http://localhost:8080/locate"));
-    auto addr = uri.to_uri().to_string();
-    http_listener listener(addr);
-    listener.support(methods::POST, handle_post);
+  while (true) {
+    // Get car locations from sensors
+    std::vector<double> locations = get_car_locations();
 
-    try {
-        listener
-            .open()
-            .then([&listener]() { std::cout << "Starting to listen on: " << listener.uri().to_string() << std::endl; })
-            .wait();
+    // Send data to backend
+    send_data_to_backend(locations);
 
-        std::string line;
-        std::getline(std::cin, line);
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+    // Wait 30 minutes before next transmission
+    std::this_thread::sleep_for(std::chrono::minutes(30));
+  }
 
-    return 0;
+  return 0;
 }

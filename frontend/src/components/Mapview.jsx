@@ -1,8 +1,6 @@
 import React from 'react';
 import { GoogleMap, LoadScript, Marker as AdvancedMarkerElement } from '@react-google-maps/api';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { googleMapsApiKey } from '/config'; // Import the API key
 
 const containerStyle = {
   width: '100%',
@@ -17,7 +15,7 @@ const center = {
 export const Mapview = ({ carData }) => {
   return (
     <LoadScript 
-    googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+    googleMapsApiKey={googleMapsApiKey}
     loading="async" 
     >
       <GoogleMap
